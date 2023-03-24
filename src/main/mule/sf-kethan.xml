@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e9073d8c-e34b-428b-b698-4aaa8d6f6324" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="6452080d-3a4d-4c31-9be2-a5de6edc708f" >
+		<salesforce:basic-connection username="samabasivarao@apicentrics.com" password="Dream2Big@" securityToken="pdmyV5lm3K8UfbkFL5OmCxEq" />
+	</salesforce:sfdc-config>
+	<flow name="sf-kethanFlow" doc:id="fbc71c99-a7bd-4218-9da3-a8f6589086fd" >
+		<http:listener doc:name="Listener" doc:id="e51b1767-c579-497b-9c4b-941c13cdbff8" config-ref="HTTP_Listener_config" path="/query"/>
+		<salesforce:query doc:name="Query" doc:id="daaa548c-651c-46d9-b043-24d34ff628da" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[SELECT Id,s_no__c,name__c,Designation__c FROM kethan_company__c]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="6151627a-8a62-451d-8def-9808e84d4a51" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sf-kethanFlow5" doc:id="3ba97c3f-0660-4a3e-b6eb-ad91b78ac803" >
+		<salesforce:replay-channel-listener doc:name="Replay channel listener" doc:id="a255804c-4edf-476e-bd5e-23b3d6db4833" config-ref="Salesforce_Config" streamingChannel="/data/kethan_company__ChangeEvent" replayOption="ONLY_NEW"/>
+		<logger level="INFO" doc:name="Logger" doc:id="00a77f61-f506-4c79-a2ac-283668174185" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="9c395d0d-9f67-4e67-a26d-d2ee9e55685b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sf-kethanFlow1" doc:id="93147907-c88a-4940-86ab-e0c0191b488b" >
+		<http:listener doc:name="Listener" doc:id="8d92dc9e-59f9-44f0-b0ae-728505629bb2" config-ref="HTTP_Listener_config" path="/insert"/>
+		<ee:transform doc:name="Transform Message" doc:id="0613bbca-36d8-4631-99af-b028cca390db" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map
+	{
+		"Designation__c": $.design,
+        "name__c": $.name
+	}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="c6cf7277-b49e-4cf5-9eb5-c246195aa14f" config-ref="Salesforce_Config" type="kethan_company__c"/>
+		<ee:transform doc:name="Transform Message" doc:id="169b396e-09f9-4066-a1a9-76b60d00f9b7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sf-kethanFlow2" doc:id="215b7703-af77-46df-92fc-5c753c8e376b" >
+		<http:listener doc:name="Listener" doc:id="fc5c2b4e-895a-4b6d-b7d1-4729670edb5e" config-ref="HTTP_Listener_config" path="/delete"/>
+		<logger level="INFO" doc:name="Logger" doc:id="dc246b20-5d42-4de9-bbe2-5978fbab37ae" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="8f15c81d-8ed3-4116-98e9-ebd243b40cb7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:delete doc:name="Delete" doc:id="baa27911-272f-47e9-af31-4ce979b6e3b3" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="3d420af3-c586-424e-86e7-4f2fa04e7645" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sf-kethanFlow3" doc:id="cc7fc4e8-9164-4b3e-b697-9941bc8a5113" >
+		<http:listener doc:name="Listener" doc:id="1ae7f57f-3a6c-444e-9ff3-2348900a5828" config-ref="HTTP_Listener_config" path="/qll"/>
+		<ee:transform doc:name="Transform Message" doc:id="86af4b87-5873-4d13-aba8-a1f46b3e9219" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map
+	{
+		"Designation__c": $.design,
+        "name__c": $.name,
+        "Id" : $.id
+	}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:update type="kethan_company__c" doc:name="Update" doc:id="35e86fb1-4167-4de1-ae0b-abdfaa6643b1" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="9c835808-a10f-4d91-bc48-3042438456f5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sf-kethanFlow4" doc:id="249c1db1-af20-41a8-b8e3-a8c0b78f490a" >
+		<http:listener doc:name="Listener" doc:id="89304789-be98-4ac0-9d38-0d3de2d2452b" config-ref="HTTP_Listener_config" path="/upsert"/>
+		<ee:transform doc:name="Transform Message" doc:id="12784fca-c067-4482-ac07-7effc7aff4e0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map
+	{
+		"Designation__c": $.design,
+        "name__c": $.name,
+        "s_no__c" : $.sno
+	}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert doc:name="Upsert" doc:id="999847a2-e7e2-4cfb-b344-50f97265224c" config-ref="Salesforce_Config" objectType="kethan_company__c" externalIdFieldName="s_no__c"/>
+		<ee:transform doc:name="Transform Message" doc:id="2e3a4615-dcbd-473e-8e36-a5b924b3c156" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
