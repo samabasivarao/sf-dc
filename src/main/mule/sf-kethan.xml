@@ -74,7 +74,7 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<salesforce:delete doc:name="Delete" doc:id="baa27911-272f-47e9-af31-4ce979b6e3b3" config-ref="Salesforce_Config"/>
+		<salesforce:delete doc:name="Delete query" doc:id="baa27911-272f-47e9-af31-4ce979b6e3b3" config-ref="Salesforce_Config"/>
 		<ee:transform doc:name="Transform Message" doc:id="3d420af3-c586-424e-86e7-4f2fa04e7645" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
